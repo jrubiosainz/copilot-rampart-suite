@@ -1,0 +1,29 @@
+name: RAMPART Security Tests
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+jobs:
+  rampart:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Run RAMPART suite (mock)
+        run: pytest tests/ -v --tb=short
+
+      - name: Run RAMPART suite (live)
+        if: env.COPILOT_AGENT_URL != ''
+        env:
+          COPILOT_AGENT_URL: ${{ secrets.COPILOT_AGENT_URL }}
+          COPILOT_AGENT_TOKEN: ${{ secrets.COPILOT_AGENT_TOKEN }}
+        run: pytest tests/ -v --live --tb=short
